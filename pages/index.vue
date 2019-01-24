@@ -9,7 +9,7 @@
               'opacity-25': isColumnClueComplete(index),
               'text-red': isInvalidColumn(index)
               }"
-            v-for="(clues, index) in columns"
+            v-for="(clues, index) in puzzle.columns"
             :key="index"
           >
             <div class="cell" v-for="(clue, index) in clues" :key="index">{{clue}}</div>
@@ -24,7 +24,7 @@
               'opacity-25': isRowClueComplete(index),
               'text-red': isInvalidRow(index)
               }"
-            v-for="(clues, index) in rows"
+            v-for="(clues, index) in puzzle.rows"
             :key="index"
           >
             <div class="cell" v-for="(clue, index) in clues" :key="index">{{clue}}</div>
@@ -32,13 +32,13 @@
         </div>
         <!-- GRID -->
         <div class="flex flex-col bg-white" ref="grid" @touchstart="onMouseDown">
-          <div class="row" v-for="i in height" :key="i">
+          <div class="row" v-for="i in puzzle.height" :key="i">
             <input
               class="cell grid-cell border-t border-l border-grey-darkest"
               :class="{
                 'bg-grey-light': isColumnClueComplete(j-1) && isRowClueComplete(i-1),
               }"
-              v-for="j in width"
+              v-for="j in puzzle.width"
               :key="i+j"
               type="checkbox"
               v-model="selected[i-1][j-1]"
@@ -47,25 +47,28 @@
         </div>
       </div>
     </div>
-    <p class="text-2xl p-10" v-if="this.hasCompleted()">Yay!</p>
+    <button class="bg-blue hover:bg-blue-dark text-white font-bold py-2 px-4 rounded m-10" @click="resetPuzzle">Återställ</button>
+    <p class="text-5xl p-10" v-if="this.hasCompleted()">Yay!</p>
   </div>
 </template>
 
 <script>
+
+const catPuzzle = {
+  width: 7,
+  height: 8,
+  columns: [[3, 1], [4, 1], [8], [3, 1], [5], [4], [4]],
+  rows: [[1, 1], [3], [3], [4], [6], [5], [1, 1, 3], [6]],
+  goal: "10100001110000111000001111000111111001111110101110111111",
+};
+
 export default {
   data() {
-    const width = 7;
-    const height = 8;
+    const puzzle = catPuzzle;
 
     return {
-      width,
-      height,
-      columns: [[3, 1], [4, 1], [8], [3, 1], [5], [4], [4]],
-      rows: [[1, 1], [3], [3], [4], [6], [5], [1, 1, 3], [6]],
-      goal: "10100001110000111000001111000111111001111110101110111111",
-      selected: new Array(height)
-        .fill(false)
-        .map(() => new Array(width).fill(false)),
+      puzzle,
+      selected: createEmptyArray(puzzle.width, puzzle.height),
       isDragging: false,
       setCellTo: false
     };
@@ -74,15 +77,10 @@ export default {
     window.addEventListener('touchmove', this.onMouseMove);
     window.addEventListener('touchend', this.onMouseUp);
   },
-  computed: {
-    clueRowLength() {
-      return this.rows.reduce((prev, clue) => Math.max(clue.length, prev), 0);
-    },
-    clueColumnLength() {
-      return this.rows.reduce((prev, clue) => Math.max(clue.length, prev), 0);
-    }
-  },
   methods: {
+    resetPuzzle() {
+      this.selected = createEmptyArray(this.puzzle.width, this.puzzle.height)
+    },
     onMouseDown(event) {
       this.isDragging = true;
 
@@ -94,8 +92,8 @@ export default {
       if (this.isDragging) {
         const {clientX, clientY} = event.touches[0];
         const {top, left} = this.$refs.grid.getBoundingClientRect();
-        const gridX = clamp(Math.floor((clientX - left) / 30), 0, this.width - 1)
-        const gridY = clamp(Math.floor((clientY - top) / 30), 0, this.height -1)
+        const gridX = clamp(Math.floor((clientX - left) / 30), 0, this.puzzle.width - 1)
+        const gridY = clamp(Math.floor((clientY - top) / 30), 0, this.puzzle.height -1)
         this.setSelection(gridX, gridY);
       }
     },
@@ -107,18 +105,18 @@ export default {
       this.$forceUpdate();
     },
     isColumnClueComplete(column) {
-      return isClueComplete(this.columns[column], this.getGridColumn(column));
+      return isClueComplete(this.puzzle.columns[column], this.getGridColumn(column));
     },
     isRowClueComplete(row) {
-      return isClueComplete(this.rows[row], this.getGridRow(row));
+      return isClueComplete(this.puzzle.rows[row], this.getGridRow(row));
     },
     isInvalidColumn(column) {
-      const clues = this.columns[column];
+      const clues = this.puzzle.columns[column];
       const selection = countArray(this.getGridColumn(column));
       return sumArray(clues) < sumArray(selection) || selectionToLarge(clues, selection);
     },
     isInvalidRow(row) {
-      const clues = this.rows[row];
+      const clues = this.puzzle.rows[row];
       const selection = countArray(this.getGridRow(row));
       return sumArray(clues) < sumArray(selection) || selectionToLarge(clues, selection);
     },
@@ -129,7 +127,7 @@ export default {
       return this.selected[row];
     },
     hasCompleted() {
-      return this.goal === this.selected
+      return this.puzzle.goal === this.selected
         .map(row => row.map(v => (v ? "1" : "0")).join(""))
         .join("");
     }
@@ -187,6 +185,12 @@ function compareArray(array1, array2) {
     array1.length === array2.length &&
     array1.every((value, index) => value === array2[index])
   );
+}
+
+function createEmptyArray(width, height) {
+  return new Array(height)
+        .fill(false)
+        .map(() => new Array(width).fill(false));
 }
 </script>
 

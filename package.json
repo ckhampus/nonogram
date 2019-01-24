@@ -7,29 +7,33 @@
   "scripts": {
     "dev": "nuxt",
     "build": "nuxt build",
+    "build:gh-pages": "cross-env DEPLOY_ENV=GH_PAGES nuxt build",
     "start": "nuxt start",
     "generate": "nuxt generate",
+    "generate:gh-pages": "cross-env DEPLOY_ENV=GH_PAGES nuxt generate",
     "lint": "eslint --ext .js,.vue --ignore-path .gitignore .",
-    "precommit": "npm run lint"
+    "precommit": "npm run lint",
+    "deploy": "push-dir --dir=dist --branch=gh-pages --cleanup"
   },
   "dependencies": {
-    "cross-env": "^5.2.0",
     "nuxt": "^2.3.4"
   },
   "devDependencies": {
-    "nodemon": "^1.18.9",
     "@nuxtjs/eslint-config": "^0.0.1",
+    "autoprefixer": "^8.6.4",
     "babel-eslint": "^8.2.1",
+    "cross-env": "^5.2.0",
     "eslint": "^5.0.1",
     "eslint-config-standard": ">=12.0.0",
+    "eslint-loader": "^2.0.0",
     "eslint-plugin-import": ">=2.14.0",
     "eslint-plugin-jest": ">=21.24.1",
     "eslint-plugin-node": ">=7.0.1",
     "eslint-plugin-promise": ">=4.0.1",
     "eslint-plugin-standard": ">=4.0.0",
-    "eslint-loader": "^2.0.0",
     "eslint-plugin-vue": "^5.0.0",
-    "autoprefixer": "^8.6.4",
+    "nodemon": "^1.18.9",
+    "push-dir": "^0.4.1",
     "tailwindcss": "^0.7.0"
   }
 }

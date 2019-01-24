@@ -31,7 +31,7 @@
           </div>
         </div>
         <!-- GRID -->
-        <div class="flex flex-col" ref="grid" @touchstart="onMouseDown">
+        <div class="flex flex-col bg-white" ref="grid" @touchstart="onMouseDown">
           <div class="row" v-for="i in height" :key="i">
             <input
               class="cell grid-cell border-t border-l border-grey-darkest"
@@ -47,7 +47,7 @@
         </div>
       </div>
     </div>
-    <p class="text-2xl p-10" v-if="goal === marked">Yay!</p>
+    <p class="text-2xl p-10" v-if="this.hasCompleted()">Yay!</p>
   </div>
 </template>
 
@@ -80,11 +80,6 @@ export default {
     },
     clueColumnLength() {
       return this.rows.reduce((prev, clue) => Math.max(clue.length, prev), 0);
-    },
-    marked() {
-      return this.selected
-        .map(row => row.map(v => (v ? "1" : "0")).join(""))
-        .join("");
     }
   },
   methods: {
@@ -105,7 +100,6 @@ export default {
       }
     },
     onMouseUp(event) {
-      console.log('onMouseUp')
       this.isDragging = false;
     },
     setSelection(x, y) {
@@ -133,6 +127,11 @@ export default {
     },
     getGridRow(row) {
       return this.selected[row];
+    },
+    hasCompleted() {
+      return this.goal === this.selected
+        .map(row => row.map(v => (v ? "1" : "0")).join(""))
+        .join("");
     }
   }
 };
@@ -150,13 +149,18 @@ function sumArray(array) {
 }
 
 function selectionToLarge(clues, selection) {
-  const length = Math.min(clues.length, selection.length);
+  const largestClue = clues.reduce((a, v) => Math.max(a, v), 0);
+  const largestSelection = selection.reduce((a, v) => Math.max(a, v), 0);
 
-  for (let i = 0; i < length; i++) {
-    if (selection[i] > clues[i]) return true;
-  }
+  return largestSelection > largestClue;
 
-  return false;
+  // const length = Math.min(clues.length, selection.length);
+
+  // for (let i = 0; i < length; i++) {
+  //   if (selection[i] > clues[i]) return true;
+  // }
+
+  // return false;
 }
 
 function countArray(array) {
